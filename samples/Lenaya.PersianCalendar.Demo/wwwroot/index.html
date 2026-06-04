@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لنایا - تقویم فارسی</title>
+<style>
+  :root { color-scheme: light dark }
+  * { margin: 0; padding: 0; box-sizing: border-box }
+  body {
+    font-family: system-ui, 'Segoe UI', sans-serif;
+    background: #f3f4f6; color: #1f2937; padding: 1.5rem;
+    line-height: 1.7
+  }
+  h1 { font-size: 1.6rem; margin-bottom: .25rem }
+  .subtitle { color: #6b7280; font-size: .9rem; margin-bottom: 1.5rem }
+  .grid {
+    display: grid; gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr))
+  }
+  .card {
+    background: #fff; border-radius: 10px; padding: 1rem 1.1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08); transition: box-shadow .15s
+  }
+  .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.12) }
+  .card h2 {
+    font-size: .9rem; color: #2563eb; margin-bottom: .6rem;
+    border-bottom: 1px solid #e5e7eb; padding-bottom: .35rem;
+    display: flex; align-items: center; gap: .4rem
+  }
+  .card h2 .endpoint {
+    font-weight: 400; font-size: .75rem; color: #9ca3af;
+    direction: ltr; unicode-bidi: embed; font-family: 'Cascadia Code', 'Fira Code', monospace
+  }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: .1rem .7rem; font-size: .85rem }
+  .kv .k { color: #6b7280; white-space: nowrap; text-align: left; direction: ltr }
+  .kv .v { color: #111827; word-break: break-all }
+  .kv .v.str { color: #059669 }
+  .kv .v.num { color: #7c3aed }
+  .kv .v.bool { color: #dc2626 }
+  .load { color: #9ca3af; font-size: .8rem; padding: .5rem 0 }
+  .error { color: #dc2626; font-size: .8rem; padding: .5rem 0 }
+  .badge {
+    display: inline-block; font-size: .7rem; padding: .1rem .5rem;
+    border-radius: 999px; background: #dbeafe; color: #1d4ed8; margin-left: .3rem
+  }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: .15rem .7rem; font-size: .85rem }
+  dt { color: #6b7280; white-space: nowrap; text-align: left; direction: ltr }
+  dd { color: #111827; word-break: break-all; margin: 0 }
+  .holiday-item { padding: .15rem 0; font-size: .85rem }
+  .holiday-item .hdate { color: #6b7280; direction: ltr; display: inline-block; width: 7em }
+  @media(prefers-color-scheme: dark) {
+    body { background: #111827; color: #f9fafb }
+    .card { background: #1f2937 }
+    .card h2 { color: #60a5fa; border-bottom-color: #374151 }
+    .card h2 .endpoint { color: #6b7280 }
+    .kv .k { color: #9ca3af }
+    .kv .v { color: #f3f4f6 }
+    .kv .v.str { color: #6ee7b7 }
+    .kv .v.num { color: #a78bfa }
+    .kv .v.bool { color: #f87171 }
+    .subtitle { color: #9ca3af }
+    .badge { background: #1e3a5f; color: #93c5fd }
+    dt { color: #9ca3af }
+    dd { color: #f3f4f6 }
+    .holiday-item .hdate { color: #9ca3af }
+  }
+</style>
+</head>
+<body>
+
+<h1>📅 لنایا &mdash; تقویم فارسی</h1>
+<p class="subtitle">Lenaya.PersianCalendar &middot; نمونه تمام متدهای API</p>
+
+<div class="grid" id="root"></div>
+
+<script>
+const ENDPOINTS = [
+  { id: 'now',          label: 'اکنون',        path: '/api/calendar/now' },
+  { id: 'utcnow',       label: 'UTC',          path: '/api/calendar/utc-now' },
+  { id: 'format',       label: 'فرمت‌ها',      path: '/api/calendar/format?year=1403&month=6&day=15&hour=14&minute=5&second=3' },
+  { id: 'properties',   label: 'خواص تاریخ',   path: '/api/calendar/properties?year=1403&month=6&day=15' },
+  { id: 'convert',      label: 'تبدیل',        path: '/api/calendar/convert?year=1403&month=1&day=1' },
+  { id: 'diff',         label: 'اختلاف',       path: '/api/calendar/diff?y1=1403&m1=1&d1=1&y2=1403&m2=12&d2=29' },
+  { id: 'arithmetic',   label: 'محاسبات',      path: '/api/calendar/arithmetic?year=1403&month=6&day=15&hour=10&minute=30&second=0&days=10&months=3&years=1' },
+  { id: 'deconstruct',  label: 'تجزیه',        path: '/api/calendar/deconstruct?year=1403&month=6&day=15' },
+  { id: 'parse',        label: 'پارس',         path: '/api/calendar/parse?value=1403/12/15' },
+  { id: 'persiandate',  label: 'PersianDate',   path: '/api/calendar/persian-date?year=1403&month=12&day=29' },
+  { id: 'persiantime',  label: 'PersianTime',   path: '/api/calendar/persian-time?hour=14&minute=30&second=15&millisecond=120' },
+  { id: 'holidays',     label: 'تعطیلات',      path: '/api/calendar/holidays?year=1403' },
+  { id: 'month',        label: 'ماه',          path: '/api/calendar/month/1403/6' },
+  { id: 'age',          label: 'سن',           path: '/api/calendar/age?year=1366&month=5&day=22' },
+];
+
+function typeClass(v) {
+  if (typeof v === 'string') return 'str';
+  if (typeof v === 'number') return 'num';
+  if (typeof v === 'boolean') return 'bool';
+  return '';
+}
+
+function renderValue(v) {
+  if (v === null || v === undefined) return '<span style="color:#9ca3af">—</span>';
+  if (typeof v === 'object' && !Array.isArray(v)) {
+    return Object.entries(v).map(([k, val]) =>
+      `<div class="kv"><span class="k">${k}</span><span class="v ${typeClass(val)}">${val}</span></div>`
+    ).join('');
+  }
+  if (Array.isArray(v)) {
+    return v.map(item => {
+      if (typeof item === 'object') {
+        return `<div class="holiday-item">${Object.entries(item).map(([k, val]) =>
+          `<span class="hdate">${val}</span>`
+        ).join('')}</div>`;
+      }
+      return `<div>${item}</div>`;
+    }).join('');
+  }
+  return `<span class="v ${typeClass(v)}">${v}</span>`;
+}
+
+function renderCard(ep, data) {
+  const label = ep.label;
+  const path = ep.path;
+  let body;
+  if (data.error) {
+    body = `<div class="error">${data.error}</div>`;
+  } else if (typeof data === 'object') {
+    // Special handling for holidays which has nested items
+    if (data.items && Array.isArray(data.items)) {
+      body = Object.entries(data).filter(([k]) => k !== 'items').map(([k, v]) =>
+        `<div class="kv"><span class="k">${k}</span><span class="v ${typeClass(v)}">${v}</span></div>`
+      ).join('');
+      body += '<div style="margin-top:.4rem;border-top:1px solid #e5e7eb;padding-top:.4rem">';
+      body += data.items.slice(0, 20).map(item => {
+        const entries = Object.entries(item);
+        return '<div class="holiday-item">' +
+          entries.map(([k, v]) => `<span style="margin-left:.5em"><b>${k}</b>: ${v}</span>`).join('') +
+          '</div>';
+      }).join('');
+      if (data.items.length > 20) body += `<div style="color:#6b7280;font-size:.8rem">... و ${data.items.length - 20} مورد دیگر</div>`;
+      body += '</div>';
+    } else {
+      body = Object.entries(data).map(([k, v]) => {
+        if (typeof v === 'object' && v !== null) {
+          return `<div class="kv"><span class="k">${k}</span><span>${renderValue(v)}</span></div>`;
+        }
+        return `<div class="kv"><span class="k">${k}</span><span class="v ${typeClass(v)}">${v}</span></div>`;
+      }).join('');
+    }
+  } else {
+    body = `<span class="v ${typeClass(data)}">${data}</span>`;
+  }
+  return `<div class="card"><h2>${label} <span class="endpoint">${path}</span></h2>${body}</div>`;
+}
+
+async function loadAll() {
+  const root = document.getElementById('root');
+  // placeholders
+  root.innerHTML = ENDPOINTS.map(ep =>
+    `<div class="card" id="c-${ep.id}"><h2>${ep.label} <span class="endpoint">${ep.path}</span></h2><div class="load">در حال بارگذاری...</div></div>`
+  ).join('');
+
+  const results = await Promise.allSettled(
+    ENDPOINTS.map(ep =>
+      fetch(ep.path).then(r => r.ok ? r.json() : r.text().then(t => ({ error: `${r.status} ${t}` })))
+    )
+  );
+
+  results.forEach((res, i) => {
+    const el = document.getElementById(`c-${ENDPOINTS[i].id}`);
+    if (res.status === 'fulfilled') {
+      el.innerHTML = renderCard(ENDPOINTS[i], res.value);
+    } else {
+      el.innerHTML = renderCard(ENDPOINTS[i], { error: res.reason.message });
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>

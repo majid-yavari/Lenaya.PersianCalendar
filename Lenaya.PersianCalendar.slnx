@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Lenaya.PersianCalendar.Benchmarks/Lenaya.PersianCalendar.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Lenaya.PersianCalendar.Demo/Lenaya.PersianCalendar.Demo.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Lenaya.PersianCalendar/Lenaya.PersianCalendar.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Lenaya.PersianCalendar.Tests/Lenaya.PersianCalendar.Tests.csproj" />
+  </Folder>
+</Solution>

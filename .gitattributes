@@ -1,0 +1,12 @@
+* text=auto
+
+*.cs text working-tree-encoding=UTF-8
+*.csproj text working-tree-encoding=UTF-8
+*.slnx text working-tree-encoding=UTF-8
+*.json text working-tree-encoding=UTF-8
+*.md text working-tree-encoding=UTF-8
+*.xml text working-tree-encoding=UTF-8
+*.yml text working-tree-encoding=UTF-8
+*.yaml text working-tree-encoding=UTF-8
+*.editorconfig text working-tree-encoding=UTF-8
+*.gitattributes text working-tree-encoding=UTF-8
